@@ -198,7 +198,7 @@ describe('écrans de référence', () => {
     expect(screen.getByText(/y compris 17 souple/)).toBeDefined()
 
     // La table doit contenir une ligne par case jouable.
-    const traps = screen.getByText('Les quatre pièges français').closest('.panel')!
+    const traps = screen.getByText('Les quatre pièges français').closest('.panel') as HTMLElement
     expect(within(traps).getAllByText(/contre (10|As)/)).toHaveLength(4)
   })
 

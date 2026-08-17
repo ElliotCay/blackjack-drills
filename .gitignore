@@ -5,3 +5,6 @@ dist-ssr
 .DS_Store
 .vite
 coverage
+
+# Cache incrémental de tsc
+*.tsbuildinfo
