@@ -28,23 +28,26 @@ export interface GameTotals {
   handsPlayed: number
   /** Résultat net réel, en euros. */
   net: number
-  /** Résultat qu'aurait donné un jeu parfait sur les mêmes donnes. */
-  netIfPerfect: number
-  /** Nombre de décisions prises et nombre d'écarts à la stratégie. */
-  decisions: number
-  mistakes: number
   /** Total misé, pour rapporter le résultat à l'exposition. */
   wagered: number
+  /**
+   * Espérance perdue par les écarts à la stratégie, en euros.
+   * C'est la part du résultat imputable au jeu, par opposition à la variance.
+   */
+  evLost: number
+  /** Nombre de décisions prises et nombre d'écarts relevés. */
+  decisions: number
+  mistakes: number
 }
 
 export function emptyGameTotals(): GameTotals {
   return {
     handsPlayed: 0,
     net: 0,
-    netIfPerfect: 0,
+    wagered: 0,
+    evLost: 0,
     decisions: 0,
     mistakes: 0,
-    wagered: 0,
   }
 }
 

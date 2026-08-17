@@ -195,6 +195,70 @@ export function lookup(
   return chart.decisions.get(decisionKey(key, upcard)) ?? null
 }
 
+// --- Décision de référence sur une main quelconque ---------------------------
+
+export interface HandOptions {
+  allowDouble: boolean
+  allowSplit: boolean
+}
+
+export interface ReferenceDecision {
+  action: Action
+  evs: ActionEvs
+  margin: number
+}
+
+const referenceCache = new Map<string, ReferenceDecision>()
+
+/**
+ * Décision optimale pour une main de taille quelconque — y compris déjà tirée,
+ * où seuls tirer et rester restent ouverts.
+ *
+ * Le sabot pris en compte est un sabot neuf moins les cartes visibles, et non
+ * le sabot réel : sans mode comptage, être noté sur une information qu'on n'est
+ * pas censé suivre n'aurait aucun sens. C'est aussi ce qui garantit que la
+ * correction en partie et la table consultable disent la même chose.
+ */
+export function referenceDecision(
+  ranks: readonly Rank[],
+  upcard: Rank,
+  options: HandOptions,
+  rules: RuleSet = FRENCH_RULES,
+): ReferenceDecision {
+  const key = `${[...ranks].sort((a, b) => a - b).join('-')}|${upcard}|${
+    options.allowDouble ? 'd' : ''
+  }${options.allowSplit ? 's' : ''}|${rules.decks}${rules.holeCard ? 'h' : ''}`
+
+  const cached = referenceCache.get(key)
+  if (cached) return cached
+
+  const comp = removeRanks(freshComposition(rules.decks), [...ranks, upcard])
+  const dist = dealerOutcomes(upcard, comp, rules)
+  const evs = actionEvs({
+    playerRanks: ranks,
+    upcard,
+    comp,
+    dist,
+    rules,
+    allowDouble: options.allowDouble,
+    allowSplit: options.allowSplit,
+  })
+  const best = bestOf(evs)
+
+  const others = [evs.stand, evs.hit, evs.double, evs.split, evs.surrender].filter(
+    (v): v is number => v !== null && v !== best.ev,
+  )
+  const runnerUp = others.length > 0 ? Math.max(...others) : best.ev
+
+  const decision: ReferenceDecision = {
+    action: best.action,
+    evs,
+    margin: best.ev - runnerUp,
+  }
+  referenceCache.set(key, decision)
+  return decision
+}
+
 // --- Libellés ----------------------------------------------------------------
 
 export const ACTION_LABELS: Record<Action, string> = {
