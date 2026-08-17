@@ -99,7 +99,9 @@ export function parseState(raw: string | null): PersistedState {
       typeof parsed.bankroll === 'number' && Number.isFinite(parsed.bankroll)
         ? parsed.bankroll
         : settings.startingBankroll,
-    game: isRecord(parsed.game) ? { ...base.game, ...(parsed.game as GameTotals) } : base.game,
+    game: isRecord(parsed.game)
+      ? { ...base.game, ...(parsed.game as Partial<GameTotals>) }
+      : base.game,
     sessions: Array.isArray(parsed.sessions) ? (parsed.sessions as SessionSummary[]) : [],
   }
 }
